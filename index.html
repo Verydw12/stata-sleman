@@ -1,0 +1,3250 @@
+<!DOCTYPE html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Global variables
+    let mbgChart, sekolahChart, panganChart, ckgChart, transmigrasiChart, psnChart;
+
+    function showDetail(sectionId) {
+        // === Atur Highlight Menu ===
+        document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+        const clickedMenu = document.querySelector(`.menu-item[onclick="navigateToSection('${sectionId}')"]`);
+        if (clickedMenu) {
+            clickedMenu.classList.add("active");
+        }
+
+        // Sembunyikan main content
+        document.getElementById("main-content").classList.add("hidden");
+
+        // Sembunyikan semua detail section
+        document.querySelectorAll(".detail-section").forEach(sec => sec.classList.remove("active"));
+
+        // Tampilkan detail yang dipilih
+        const detail = document.getElementById(sectionId + "-detail");
+        if (detail) {
+            detail.classList.add("active");
+        }
+
+        // Lompat ke atas langsung
+        window.scrollTo(0, 0);
+    }
+
+    function showOverview() {
+        // Atur highlight menu: hapus semua, aktifkan beranda
+        document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+        const berandaMenu = document.querySelector(`.menu-item[onclick="navigateToSection('beranda')"]`);
+        if (berandaMenu) berandaMenu.classList.add("active");
+        
+        // Sembunyikan semua detail section
+        document.querySelectorAll(".detail-section").forEach(sec => sec.classList.remove("active"));
+
+        // Tampilkan main content lagi
+        document.getElementById("main-content").classList.remove("hidden");
+
+        // Lompat ke atas langsung
+        window.scrollTo(0, 0);
+    }
+    
+    function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+        const btn = document.getElementById("hamburgerBtn");
+
+        sidebar.classList.toggle("active");
+        overlay.classList.toggle("active");
+        btn.classList.toggle("active");
+    }
+
+    function navigateToSection(sectionId) {
+        // Tutup sidebar setelah klik menu
+        toggleSidebar();
+
+        // === Atur Highlight Menu ===
+        document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+        const clickedMenu = document.querySelector(`.menu-item[onclick="navigateToSection('${sectionId}')"]`);
+        if (clickedMenu) {
+            clickedMenu.classList.add("active");
+        }
+
+        // Kalau beranda → tampilkan main content, sembunyikan detail
+        if (sectionId === "beranda") {
+            document.getElementById("main-content").classList.remove("hidden");
+            document.querySelectorAll(".detail-section").forEach(sec => sec.classList.remove("active"));
+            // Lompat ke atas langsung
+            window.scrollTo(0, 0);
+        } 
+        else if (sectionId === "asta-cita") {
+            // Tampilkan main content
+            document.getElementById("main-content").classList.remove("hidden");
+            document.querySelectorAll(".detail-section").forEach(sec => sec.classList.remove("active"));
+
+            // Scroll ke bagian Asta Cita dengan offset biar gak ketutup header
+            const asta = document.getElementById("asta-simple");
+            if (asta) {
+                const headerHeight = document.querySelector(".header").offsetHeight || 70; // default 70px
+                const y = asta.getBoundingClientRect().top + window.scrollY - headerHeight - 20; 
+                window.scrollTo({ top: y, behavior: "smooth" });
+            }
+        }
+        // Default → tampilkan detail sesuai id
+        else {
+            document.getElementById("main-content").classList.add("hidden");
+            document.querySelectorAll(".detail-section").forEach(sec => sec.classList.remove("active"));
+
+            const detail = document.getElementById(sectionId + "-detail");
+            if (detail) {
+                detail.classList.add("active");
+            }
+            // Lompat ke atas langsung
+            window.scrollTo(0, 0);
+        }
+
+    }
+
+    function toggleNav(id, btn) {
+        const nav = document.getElementById(id);
+        nav.classList.toggle("collapsed");
+        btn.textContent = nav.classList.contains("collapsed") ? "‹" : "›";
+    }
+
+    function scrollToSection(id) {
+    const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function handleNavClick(event, id) {
+        // Tutup semua sub-nav lain dulu
+        document.querySelectorAll('.sub-nav').forEach(nav => {
+            if (nav.id !== id) {
+                nav.classList.add('collapsed');
+                const btn = nav.querySelector('.sub-nav-toggle');
+                if (btn) btn.textContent = "‹";
+            }
+        });
+
+        const nav = document.getElementById(id);
+        const btn = nav.querySelector('.sub-nav-toggle');
+
+        if (nav.classList.contains('collapsed')) {
+            // buka kalau collapsed (klik di mana saja)
+            nav.classList.remove('collapsed');
+            btn.textContent = "›";
+        } else if (event.target === btn) {
+            // tutup hanya kalau klik tombol
+            nav.classList.add('collapsed');
+            btn.textContent = "‹";
+        }
+    }
+    // Reset semua sub-nav ke collapsed saat klik back-btn atau pindah menu utama
+    function resetSubNavs() {
+        document.querySelectorAll('.sub-nav').forEach(nav => {
+            nav.classList.add('collapsed');
+            const btn = nav.querySelector('.sub-nav-toggle');
+            if (btn) btn.textContent = "‹";
+        });
+    }
+
+    // Collapse sub-nav saat halaman pertama dimuat (untuk tablet/hp)
+    document.addEventListener("DOMContentLoaded", function() {
+        resetSubNavs();
+    });
+
+    // Ubah showOverview agar reset sub-nav juga
+    const _showOverview = showOverview;
+    showOverview = function() {
+        resetSubNavs();
+        _showOverview();
+    };
+
+    // Ubah navigateToSection agar reset sub-nav juga saat pindah menu utama
+    const _navigateToSection = navigateToSection;
+    navigateToSection = function(sectionId) {
+        resetSubNavs();
+        _navigateToSection(sectionId);
+    };
+
+</script>
+
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Asta Cita - Kabupaten Sleman</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Semua elemen dengan id jadi target offset scroll */
+        [id] {
+        scroll-margin-top: 110px; /* sesuaikan tinggi header (sekitar 64–80px) */
+        }
+
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            color: #2d3436;
+            font-size: 2.2rem;
+            /* margin-bottom: 0.5rem; */
+        }
+        
+        .header p {
+            color: #636e72;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .nav-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            min-height: 140px;
+        }
+        
+        .nav-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .nav-card:active {
+            transform: translateY(-5px) scale(0.98);
+        }
+        
+        .nav-card-icon {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        
+        .nav-card-content {
+            flex: 1;
+        }
+        
+        .nav-card h3 {
+            color: #2d3436;
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .nav-card p {
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .progress-mini {
+            flex: 1;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-mini-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        
+        .progress-text {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .detail-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .detail-section.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .detail-layout {
+            display: flex;
+            align-items: flex-start; /* biar rata atas */
+            gap: 1rem;
+        }
+
+        .detail-content {
+            flex: 1;
+            min-width: 0; /* penting supaya tidak tabrakan */
+        }
+
+        /* Navigasi kanan */
+        .sub-nav {
+            flex-shrink: 0; /* biar width tidak dipaksa mengecil */
+            width: 220px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: width 0.3s ease;
+            position: sticky;
+            top: 100px; /* header tinggi 100px */
+        }
+
+        /* Saat collapse → tetap sejajar tapi tipis */
+        .sub-nav.collapsed {
+            width: 24px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .sub-nav.collapsed h4,
+        .sub-nav.collapsed ul {
+            display: none;
+        }
+
+
+        .sub-nav h4 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: #0984e3;
+        }
+
+        .sub-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sub-nav li {
+            margin-bottom: 0.8rem;
+        }
+
+        .sub-nav button {
+            background: none;
+            border: none;
+            color: #2d3436;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .sub-nav button:hover {
+            color: #0984e3;
+        }
+
+        /* Tombol panah */
+        .sub-nav-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            width: 100%;
+            cursor: inherit;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(116,185,255,0.3);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            /* height: 400px; */
+        }
+        .back-btn {
+            background: #0984e3; /* biru utama */
+            color: white;
+            border: none;
+            padding: 0.6em 1.2em; /* relatif ke font-size */
+            border-radius: 0.6em; /* ikut menyesuaikan */
+            cursor: pointer;
+            font-size: clamp(0.9rem, 2vw, 1rem); /* otomatis kecil di HP, max 1rem di desktop */
+            margin-bottom: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.15em 0.4em rgba(25, 118, 210, 0.3);
+        }
+
+        .back-btn:hover {
+            background: #1565C0;
+            transform: translateX(-5%);
+            box-shadow: 0 0.25em 0.6em rgba(21, 101, 192, 0.4);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+        
+        .asta-cita-simple {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 3rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .asta-item-simple {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+        
+        .asta-item-simple:last-child {
+            border-bottom: none;
+        }
+        
+        .asta-item-simple:hover {
+            background: rgba(116,185,255,0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0 -1rem;
+        }
+        
+        .asta-number {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .asta-content-simple {
+            flex: 1;
+        }
+        
+        .asta-content-simple h4 {
+            color: #2d3436;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+        
+        .asta-content-simple p {
+            color: #636e72;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .main-content {
+            transition: all 0.5s ease;
+        }
+
+        .main-content.hidden {
+            display: none;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto; /* scroll kalau kolom terlalu banyak */
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 0.6rem;
+            overflow: hidden;
+            box-shadow: 0 0.25rem 0.9rem rgba(0,0,0,0.1);
+            margin: 2rem 0;
+            font-size: clamp(0.8rem, 1vw, 1rem);
+            table-layout: auto;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #0984e3, #0984e3);
+            color: white;
+            padding: clamp(0.6rem, 1vw, 1rem);
+            text-align: left;
+            font-weight: bold;
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+            white-space: normal;
+            word-break: normal;          /* biar nggak motong kata */
+            overflow-wrap: break-word;   /* kalau kata super panjang */
+        }
+
+        .data-table td {
+            padding: clamp(0.6rem, 1vw, 1rem);
+            border-bottom: 1px solid #eee;
+            font-size: clamp(0.8rem, 1vw, 0.95rem);
+            white-space: normal;
+            word-break: normal;          
+            overflow-wrap: break-word;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box h4 {
+            color: #1976d2;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p {
+            font-size: 0.9rem;
+        }
+
+        .source-note {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .overview-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .asta-cita-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .asta-item {
+            background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+            padding: 1.5rem;
+            border-radius: 15px;
+            color: #2d3436;
+            box-shadow: 0 4px 15px rgba(168,230,207,0.3);
+        }
+
+        .asta-item h4 {
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .implementation-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 10px;
+        }
+
+        h3.alur-title {
+            text-align: center;
+            margin-top: 10px;
+            color: #0984e3;
+        }
+
+        .alur-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 20px;
+            text-align: center;
+        }
+
+        .fase {
+            vertical-align: top;
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 33%;
+        }
+
+        .fase-header {
+            background: #0984e3;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        /* Fase 1 khusus */
+        .fase-1-content {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .sub-title {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .box-light {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 6px 0;
+        }
+
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #0984e3;
+        }
+
+        /* Fase 2 */
+        .box-grey {
+            background: #dfe6e9;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 6px 0;
+        }
+
+        .box-blue {
+            background: #74b9ff;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 6px 0;
+        }
+
+        /* Fase 3 */
+        .fase-3-wrapper {
+            border: 2px dashed #0984e3;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        footer {
+        margin-top: 40px;
+        padding: 20px;
+        text-align: center;
+        background: #fafafa;
+        border-top: 2px solid #eee;
+        font-size: 14px;
+        color: #444;
+        }
+
+        footer a {
+        color: #0077cc;
+        text-decoration: none;
+        }
+
+        footer a:hover {
+        text-decoration: underline;
+        }
+
+        .emoji-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Hamburger Menu Styles */
+        .hamburger-btn {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1002;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 45px;
+            height: 45px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 22px;
+            height: 3px;
+            background: #2d3436;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            transform: scale(1.05);
+        }
+
+        .hamburger-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(8px, -8px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -275px;
+            width: 275px;
+            height: 100vh;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.15);
+            transition: left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1rem 1rem;
+            border-bottom: 2px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar-header h3 {
+            color: #2d3436;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .close-sidebar {
+            background: #f8f9fa;
+            border: none;
+            font-size: 2rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-sidebar:hover {
+            background: #e9ecef;
+            color: #2d3436;
+            transform: scale(1.1);
+        }
+
+        .sidebar-content {
+            padding: 1rem 0;
+        }
+
+        .menu-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.7rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            transition: width 0.3s ease;
+        }
+
+        .menu-item:hover::before {
+            width: 4px;
+        }
+
+        .menu-item:hover {
+            background: rgba(116, 185, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: rgba(116, 185, 255, 0.15);
+            color: #0984e3;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active::before {
+            width: 4px;
+        }
+
+        .menu-item.active .menu-icon {
+            transform: scale(1.2);
+        }
+
+        .menu-icon {
+            font-size: 1.3rem;
+            margin-right: 1rem;
+            width: 28px;
+            display: flex;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-text {
+            font-size: 1rem;
+            font-weight: 500;
+            color: inherit;
+        }
+
+        .menu-section-header {
+            padding: 1.5rem 1.5rem 0.8rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .menu-section-header:first-child {
+            margin-top: 0;
+            border-top: none;
+        }
+
+        .menu-section-header .menu-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(0.5px);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Header adjustment to avoid overlap with hamburger */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem 1rem 5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Responsif untuk laptop kecil (≤1200px) */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 1.5rem;
+            }
+            .nav-cards {
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            }
+            h2 {
+                font-size: 1.9rem; /* ~30px */
+            }
+        }
+
+        /* Responsif untuk tablet (≤992px) */
+        @media (max-width: 992px) {
+            .header h1 {
+            font-size: 1.8rem;
+            }
+            .nav-cards {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+            .nav-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            min-height: auto;
+            }
+            .nav-card-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            }
+            .sub-nav {
+            display: block !important;
+            position: absolute;
+            right: 16px;
+            top: 80px;
+            z-index: 999;
+            width: 220px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: right 0.3s;
+            }
+            .sub-nav.collapsed {
+            width: 32px;
+            min-width: 32px;
+            right: 8px;
+            padding: 0;
+            border-radius: 16px;
+            }
+            .sub-nav.collapsed h4,
+            .sub-nav.collapsed ul {
+            display: none;
+            }
+            h2 {
+            font-size: 1.7rem; /* ~27px */
+            }
+        }
+
+        /* Responsif untuk HP besar (≤768px) */
+        @media (max-width: 768px) {
+            .header {
+            padding: 1rem 1rem 1rem 4rem;
+            }
+            .header h1 {
+            font-size: 1.5rem;
+            }
+            .header p {
+            font-size: 0.9rem;
+            }
+            .nav-cards {
+            grid-template-columns: 1fr; /* satu kolom */
+            gap: 1rem;
+            }
+            .nav-card {
+            padding: 1.2rem;
+            }
+            .hamburger-btn {
+            top: 1rem;
+            left: 1rem;
+            width: 38px;
+            height: 38px;
+            padding: 0.5rem;
+            }
+            .hamburger-btn span {
+            width: 18px;
+            height: 2px;
+            }
+            .sidebar {
+            width: 260px;
+            left: -260px;
+            }
+            h2 {
+            font-size: 1.5rem; /* ~24px */
+            }
+            .sub-nav {
+            top: 60px;
+            right: 8px;
+            width: 90vw;
+            max-width: 320px;
+            border-radius: 16px;
+            position: absolute;
+            }
+        }
+
+        /* Responsif untuk HP kecil (≤576px) */
+        @media (max-width: 576px) {
+            .header {
+            padding: 0.8rem 0.8rem 0.8rem 3.5rem;
+            }
+            .header h1 {
+            font-size: 1.3rem;
+            }
+            .container {
+            padding: 1rem;
+            }
+            .nav-card h3 {
+            font-size: 1.1rem;
+            }
+            .nav-card p {
+            font-size: 0.85rem;
+            }
+            .stat-number {
+            font-size: 1.8rem;
+            }
+            .chart-container {
+            padding: 1rem;
+            }
+            h2 {
+            font-size: 1.3rem; /* ~21px */
+            }
+            .sub-nav {
+            top: 60px;
+            right: 8px;
+            width: 90vw;
+            max-width: 320px;
+            border-radius: 16px;
+            position: absolute;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <!-- Hamburger Menu Button -->
+        <button class="hamburger-btn" onclick="toggleSidebar()" id="hamburgerBtn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <h1 style="display: flex; align-items: center;">
+            <img src="stata4.png" 
+                alt="Logo Stata" 
+                style="height: 40px; width: auto; vertical-align: middle;">
+        </h1>
+        <p>Satu Data Asta Cita – Implementasi Program Unggulan Pemerintah di Kabupaten Sleman</p>
+    </div>
+    
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu Dashboard</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="menu-list">
+                <li class="menu-item active" onclick="navigateToSection('beranda')">
+                    <span class="menu-text">Beranda</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('asta-cita')">
+                    <span class="menu-text">8 Asta Cita</span>
+                </li>
+                
+                <li class="menu-section-header">
+                    <span class="menu-text">Program Prioritas</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('mbg')">
+                    <span class="menu-text">Makan Bergizi Gratis</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('sekolah-rakyat')">
+                    <span class="menu-text">Sekolah Rakyat</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('sekolah-unggulan')">
+                    <span class="menu-text">Sekolah Unggulan</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('tiga-juta-rumah')">
+                    <span class="menu-text">3 Juta Rumah</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('koperasi-merah-putih')">
+                    <span class="menu-text">Koperasi Merah Putih</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('swasembada-pangan')">
+                    <span class="menu-text">Swasembada Pangan</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('ckg')">
+                    <span class="menu-text">Cek Kesehatan Gratis</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('transmigrasi')">
+                    <span class="menu-text">Transmigrasi</span>
+                </li>
+                
+                <li class="menu-item" onclick="navigateToSection('psn')">
+                    <span class="menu-text">Proyek Strategis Nasional</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="container">
+        
+        <!-- Main Content (Navigation and Overview) -->
+        <div class="main-content" id="main-content">
+            <!-- Navigation Cards -->
+            <div class="nav-cards" id="navigation">
+                <div class="nav-card" onclick="showDetail('mbg')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #fd79a8, #fdcb6e);">🍽️</div>
+                    <div class="nav-card-content">
+                        <h3>Makan Bergizi Gratis (MBG)</h3>
+                        <p>Program pemberian makanan bergizi gratis untuk siswa sekolah sebagai upaya peningkatan gizi dan kesehatan anak Indonesia.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 21.75%; background: linear-gradient(90deg, #fd79a8, #fdcb6e);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #fd79a8;">21.75% Sekolah Terlayani</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('sekolah-rakyat')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #fdcb6e, #e17055);">🏫</div>
+                    <div class="nav-card-content">
+                        <h3>Sekolah Rakyat</h3>
+                        <p>Revolusi pendidikan melalui sekolah yang terjangkau, berkualitas, dan mengutamakan pembentukan karakter serta keterampilan praktis.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 10%; background: linear-gradient(90deg, #fdcb6e, #e17055);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #e17055;">1 Sekolah Terealisasi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('sekolah-unggulan')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffc400);">👩🏻‍🎓</div>
+                    <div class="nav-card-content">
+                        <h3>Sekolah Unggulan</h3>
+                        <p>Sekolah unggulan yang fokus pada kualitas pendidikan, pengembangan karakter, serta peningkatan daya saing siswa di tingkat nasional maupun global.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 10%; background: linear-gradient(90deg, #fdcb6e, #ffc400  );"></div>
+                            </div>
+                            <span class="progress-text" style="color: #ffc400;">1 Sekolah Terealisasi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('tiga-juta-rumah')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7);">🏠</div>
+                    <div class="nav-card-content">
+                        <h3>Program 3 Juta Rumah</h3>
+                        <p>Pembangunan perumahan rakyat yang terjangkau untuk memenuhi kebutuhan hunian masyarakat berpenghasilan rendah hingga menengah.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 8.7%; background: linear-gradient(90deg, #a29bfe, #6c5ce7);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #6c5ce7;">262 dari 3,000 Unit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('koperasi-merah-putih')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #fd79a8, #e84393);">🤝</div>
+                    <div class="nav-card-content">
+                        <h3>Koperasi Merah Putih</h3>
+                        <p>Penguatan ekonomi kerakyatan melalui revitalisasi koperasi sebagai soko guru perekonomian Indonesia dengan pendekatan modern.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 62.8%; background: linear-gradient(90deg, #fd79a8, #e84393);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #e84393;">157 dari 250 Koperasi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('swasembada-pangan')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #55efc4, #00b894);">🌾</div>
+                    <div class="nav-card-content">
+                        <h3>Swasembada Pangan</h3>
+                        <p>Program memastikan ketersediaan dan keterjangkauan pangan berkualitas untuk seluruh masyarakat Sleman.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 87.3%; background: linear-gradient(90deg, #55efc4, #00b894);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #00b894;">87.3% Ketahanan Tercapai</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('ckg')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, rgb(255, 255, 255), #d7daeb);">🩺</div>
+                    <div class="nav-card-content">
+                        <h3>Cek Kesehatan Gratis</h3>
+                        <p>Peningkatan layanan kesehatan masyarakat melalui program cek kesehatan gratis bagi seluruh warga Kabupaten Sleman.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 73.6%; background: linear-gradient(90deg, #74b9ff, #0984e3);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #0984e3;">73.6% Masyarakat Terlayani</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('transmigrasi')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #79fdf4, #b1e1ff);">🗺️</div>
+                    <div class="nav-card-content">
+                        <h3>Transmigrasi</h3>
+                        <p>Pemerataan penduduk dan pembangunan wilayah melalui program transmigrasi berbasis ekonomi lokal.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 62.8%; background: linear-gradient(90deg, #79fdf4, #43a9e8);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #43a9e8;">157 dari 250 Koperasi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-card" onclick="showDetail('psn')">
+                    <div class="nav-card-icon" style="background: linear-gradient(135deg, #FBF3D5, #FBF3D5);">🏗️</div>
+                    <div class="nav-card-content">
+                        <h3>Proyek Strategis Nasional (PSN)</h3>
+                        <p>Mendorong percepatan pembangunan dan konektivitas untuk pemerataan ekonomi antarwilayah.</p>
+                        <div class="progress-indicator">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: 62.8%; background: linear-gradient(90deg, #ffd84d, #ffd84d);"></div>
+                            </div>
+                            <span class="progress-text" style="color: #ffd84d;">75.6% Terbangun</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simple Asta Cita Overview -->
+            <div class="asta-cita-simple" id="asta-simple">
+                <h2 style="margin-bottom: 2rem; text-align: center; color: #2d3436;">8 Poin Asta Cita</h2>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">1</div>
+                    <div class="asta-content-simple">
+                        <h4>Memperkokoh Ideologi Pancasila, Demokrasi, dan HAM</h4>
+                        <p>Penguatan nilai-nilai Pancasila, sistem demokrasi yang sehat, dan perlindungan hak asasi manusia dalam kehidupan berbangsa dan bernegara.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">2</div>
+                    <div class="asta-content-simple">
+                        <h4>Memantapkan Sistem Pertahanan Keamanan dan Kemandirian Bangsa</h4>
+                        <p>Membangun sistem pertahanan keamanan yang kuat dan mendorong kemandirian melalui swasembada pangan, energi, air, ekonomi kreatif, hijau, dan biru.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">3</div>
+                    <div class="asta-content-simple">
+                        <h4>Meningkatkan Lapangan Kerja dan Mengembangkan Infrastruktur</h4>
+                        <p>Menciptakan lapangan kerja berkualitas, mendorong kewirausahaan, mengembangkan industri kreatif, dan melanjutkan pembangunan infrastruktur.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">4</div>
+                    <div class="asta-content-simple">
+                        <h4>Memperkuat SDM, Sains, Teknologi, dan Kesetaraan</h4>
+                        <p>Pembangunan sumber daya manusia, sains, teknologi, pendidikan, kesehatan, prestasi olahraga, kesetaraan gender, serta penguatan peran perempuan, pemuda, dan disabilitas.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">5</div>
+                    <div class="asta-content-simple">
+                        <h4>Melanjutkan Hilirisasi dan Industrialisasi</h4>
+                        <p>Pengembangan hilirisasi dan industrialisasi untuk meningkatkan nilai tambah produk dalam negeri dan memperkuat daya saing ekonomi.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">6</div>
+                    <div class="asta-content-simple">
+                        <h4>Membangun dari Desa untuk Pemerataan Ekonomi</h4>
+                        <p>Pembangunan berbasis desa dan dari bawah untuk pemerataan ekonomi dan pemberantasan kemiskinan secara menyeluruh.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">7</div>
+                    <div class="asta-content-simple">
+                        <h4>Memperkuat Reformasi Politik, Hukum, dan Birokrasi</h4>
+                        <p>Penguatan reformasi politik, hukum, dan birokrasi, serta memperkuat pencegahan dan pemberantasan korupsi dan narkoba.</p>
+                    </div>
+                </div>
+                
+                <div class="asta-item-simple">
+                    <div class="asta-number">8</div>
+                    <div class="asta-content-simple">
+                        <h4>Memperkuat Kehidupan Harmonis dengan Lingkungan</h4>
+                        <p>Penguatan penyelarasan kehidupan yang harmonis dengan lingkungan, alam, budaya, dan peningkatan toleransi antarumat beragama untuk masyarakat adil dan makmur.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Sections -->
+        
+        <!-- MBG Detail -->
+        <div class="detail-section" id="mbg-detail">
+            <div class="detail-layout">
+
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🍽️ Program Makan Bergizi Gratis (MBG)</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="mbg-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">315</div>
+                                <div class="stat-label">Sekolah Terlayani MBG</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">33.673</div>
+                                <div class="stat-label">Siswa Penerima</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">19</div>
+                                <div class="stat-label">SPPG</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XXX</div>
+                                <div class="stat-label">Mitra</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="mbgChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="mbg-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>
+                                Asupan gizi yang cukup merupakan aspek fundamental bagi pembentukan sumber daya manusia. 
+                                Namun demikian, keterbatasan akses kepada asupan gizi yang cukup dan keberagaman bahan pangan 
+                                serta pemahaman masyarakat menyebabkan berbagai permasalahan gizi. 
+                                Program hasil terbaik cepat memberikan makan bergizi gratis di sekolah dan pesantren, serta 
+                                bantuan gizi untuk ibu hamil, ibu menyusui, dan anak balita memiliki daya ungkit tinggi terhadap 
+                                pembangunan sumber daya manusia.
+                            </p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>
+                                Program Makan Bergizi Gratis ditujukan sebagai investasi untuk 
+                                <br>1) menanamkan kebiasaan pola makan sehat dan meningkatkan pemenuhan gizi anak sekolah, santri, ibu hamil, ibu menyusui, dan balita; 
+                                <br>2) meningkatkan prestasi, partisipasi dan kehadiran anak sekolah, serta menurunkan angka putus sekolah; 
+                                <br>3) meningkatkan kesejahteraan petani dan pelaku usaha kecil dan mikro; serta 
+                                <br>4) menciptakan lapangan kerja dan pengurangan beban penduduk miskin.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Daftar SPPG -->
+                    <div id="mbg-sppg">
+                        <h3>Daftar SPPG yang Melayani MBG</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama SPPG</th>
+                                        <th>Jumlah Sekolah yang Dilayani</th>
+                                        <th>Jumlah Siswa Penerima</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- data sppg -->
+                                    <tr><td>1</td><td>SPPG Kab. Sleman - Sleman 2</td><td>24</td><td>2570</td></tr>
+                                    <tr><td>2</td><td>SPPG Kab. Sleman Seyegan 1</td><td>9</td><td>1184</td></tr>
+                                    <tr><td>3</td><td>SPPG Kab. Sleman Sidokarto 2</td><td>6</td><td>327</td></tr>
+                                    <tr><td>4</td><td>SPPG KAB.SLEMAN-SLEMAN 1</td><td>17</td><td>2652</td></tr>
+                                    <tr><td>5</td><td>SPPG Khusus Kabupaten Sleman - Depok</td><td>21</td><td>2809</td></tr>
+                                    <tr><td>6</td><td>SPPG Mandiri Kab. Sleman - Cangkringan 1</td><td>36</td><td>2468</td></tr>
+                                    <tr><td>7</td><td>SPPG Sidokarto Godean Sleman</td><td>23</td><td>2495</td></tr>
+                                    <tr><td>8</td><td>SPPG Sleman Berbah Sendangtirto</td><td>31</td><td>2502</td></tr>
+                                    <tr><td>9</td><td>SPPG Sleman Cangkringan Umbulharjo</td><td>16</td><td>347</td></tr>
+                                    <tr><td>10</td><td>SPPG Sleman Gamping Banyuraden</td><td>17</td><td>1586</td></tr>
+                                    <tr><td>11</td><td>SPPG Sleman Godean Sidokarto 1</td><td>4</td><td>109</td></tr>
+                                    <tr><td>12</td><td>SPPG Sleman Godean Sidokarto 2</td><td>4</td><td>121</td></tr>
+                                    <tr><td>13</td><td>SPPG Sleman Kalasan Tamanmartani</td><td>10</td><td>1218</td></tr>
+                                    <tr><td>14</td><td>SPPG Sleman Mlati Tlogodadi</td><td>15</td><td>1539</td></tr>
+                                    <tr><td>15</td><td>SPPG Sleman Ngemplak Umbulmartani 1</td><td>11</td><td>1716</td></tr>
+                                    <tr><td>16</td><td>SPPG Sleman Prambanan Bokoharjo</td><td>14</td><td>3272</td></tr>
+                                    <tr><td>17</td><td>SPPG Sleman Seyegan Margoluwih</td><td>4</td><td>95</td></tr>
+                                    <tr><td>18</td><td>SPPG Yayasan Amanah Puri Annisa Kec. Kalasan</td><td>25</td><td>3404</td></tr>
+                                    <tr><td>19</td><td>SPPG Yayasan Patriot Solidaritas Nusantara Kalasan</td><td>28</td><td>3259</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Implementasi -->
+                    <div id="mbg-implementasi">
+                        <h3>Implementasi MBG per Kecamatan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kecamatan</th>
+                                        <th>Total Sekolah</th>
+                                        <th>Sekolah Terlayani</th>
+                                        <th>Total Siswa</th>
+                                        <th>Siswa Penerima</th>
+                                        <th>Persentase Sekolah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- contoh baris -->
+                                    <tr><td>1</td><td>Mlati</td><td>240</td><td>28</td><td>45</td><td>167</td><td>30.4%</td></tr>
+                                    <tr><td>2</td><td>Depok</td><td>180</td><td>15</td><td>32</td><td>133</td><td>26.1%</td></tr>
+                                    <tr><td>3</td><td>Berbah</td><td>150</td><td>12</td><td>28</td><td>110</td><td>26.7%</td></tr>
+                                    <!-- dst sesuai data -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Badan Gizi Nasional, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="mbg-nav" onclick="handleNavClick(event, 'mbg-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Makan Bergizi Gratis</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('mbg-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('mbg-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('mbg-sppg')">Daftar SPPG</button></li>
+                        <li><button onclick="scrollToSection('mbg-implementasi')">Implementasi per Kecamatan</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekolah Rakyat Detail -->
+        <div class="detail-section" id="sekolah-rakyat-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🏫 Program Sekolah Rakyat</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="sekolah-rakyat-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">XX</div>
+                                <div class="stat-label">Sekolah Rakyat Direncanakan</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1</div>
+                                <div class="stat-label">Sekolah Rakyat Terbangun</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">75</div>
+                                <div class="stat-label">Jumlah Siswa</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">10</div>
+                                <div class="stat-label">Jumlah Guru</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Sekolah Rakyat -->
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="sekolahRakyatChart"></canvas>
+                        </div> 
+                    </div> 
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="sekolah-rakyat-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Kementerian Sosial menyatakan, Program Sekolah Rakyat berlatar tujuan yang mulia, sebagai bagian dari upaya pemerintahan untuk mengentaskan kemiskinan secara terpadu. Ini bagian dari strategi besar Presiden Prabowo Subianto untuk menurunkan angka kemiskinan di bawah lima persen. Sekolah Rakyat adalah bentuk keadilan sosial bagi keluarga yang belum terbawa dalam proses pembangunan.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Berdasarkan Instruksi Presiden (Inpres) No 8 Tahun 2025, program Sekolah Rakyat merupakan bagian dari pelaksanaan pengentasan kemiskinan dan penghapusan kemiskinan ekstrem. Calon siswa sasaran Sekolah Rakyat ditentukan dengan basis Data Tunggal Sosial dan Ekonomi Nasional (DTSEN).</p>
+                        </div>
+                    </div>
+
+                    <!-- Implementasi Sekolah Rakyat -->
+                    <div id="sekolah-rakyat-implementasi">
+                        <h3>Implementasi Sekolah Rakyat</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Sekolah Rakyat</th>
+                                        <th>Alamat</th>
+                                        <th>Jumlah Murid</th>
+                                        <th>Jumlah Guru</th>
+                                        <th>Jumlah Wali Asuh</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Sekolah Rakyat Menengah Atas 20 Sleman</td>
+                                        <td>Balai Besar Pendidikan dan Pelatihan Kesejahteraan Sosial (BBPPKS) Regional III Yogyakarta, Jl. Karang Mojo, Bromonilan, Purwomartani, Kalasan (sementara)</td>
+                                        <td>XX</td>
+                                        <td>XX</td>
+                                        <td>XX</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Rencana Sekolah Rakyat -->
+                    <div id="sekolah-rakyat-rencana">
+                        <h3>Rencana Lokasi Sekolah Rakyat</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Lokasi</th>
+                                        <th>Kecamatan</th>
+                                        <th>Status</th>
+                                        <th>Kapasitas</th>
+                                        <th>Target Operasional</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Mlati</td>
+                                        <td>Mlati</td>
+                                        <td>Perencanaan</td>
+                                        <td>360 siswa</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Moyudan</td>
+                                        <td>Moyudan</td>
+                                        <td>Dalam Pembangunan</td>
+                                        <td>75 siswa</td>
+                                        <td>2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Sleman</td>
+                                        <td>Sleman</td>
+                                        <td>Perencanaan</td>
+                                        <td>240 siswa</td>
+                                        <td>2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Ngaglik</td>
+                                        <td>Ngaglik</td>
+                                        <td>Perencanaan</td>
+                                        <td>360 siswa</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Gamping</td>
+                                        <td>Gamping</td>
+                                        <td>Perencanaan</td>
+                                        <td>240 siswa</td>
+                                        <td>2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Berbah</td>
+                                        <td>Berbah</td>
+                                        <td>Perencanaan</td>
+                                        <td>120 siswa</td>
+                                        <td>2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Godean</td>
+                                        <td>Godean</td>
+                                        <td>Perencanaan</td>
+                                        <td>120 siswa</td>
+                                        <td>2028</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="source-note">
+                        Sumber: Dinas Sosial dan Dinas Pekerjaan Umum, Perumahan dan Kawasan Permukiman, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="sekolah-rakyat-nav" onclick="handleNavClick(event, 'sekolah-rakyat-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Sekolah Rakyat</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('sekolah-rakyat-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('sekolah-rakyat-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('sekolah-rakyat-implementasi')">Implementasi</button></li>
+                        <li><button onclick="scrollToSection('sekolah-rakyat-rencana')">Rencana Lokasi</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekolah Unggulan Detail -->
+        <div class="detail-section" id="sekolah-unggulan-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">👩🏻‍🎓 Program Sekolah Unggulan</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="sekolah-unggulan-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">XX</div>
+                                <div class="stat-label">Sekolah Unggulan Direncanakan</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1</div>
+                                <div class="stat-label">Sekolah Unggulan Terbangun</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1,920</div>
+                                <div class="stat-label">Jumlah Siswa</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">192</div>
+                                <div class="stat-label">Jumlah Guru</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Sekolah Unggulan -->
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="sekolahUnggulanChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="sekolah-unggulan-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Pendidikan berkualitas dunia merupakan fondasi utama dalam membangun kemandirian nasional di berbagai sektor strategis, seperti industri, pertahanan, energi, dan teknologi. Sekolah Garuda merupakan program strategis nasional yang bertujuan menjaring generasi muda terbaik dari seluruh penjuru negeri untuk dipersiapkan melanjutkan pendidikan ke perguruan tinggi unggulan dunia, dan kelak menjadi motor penggerak kemajuan bangsa. Langkah ini menjadi salah satu strategi jangka panjang Presiden Prabowo untuk membangun SDM unggul sebagai tulang punggung pembangunan nasional.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Program Sekolah Unggukan bertujuan untuk menjaring dan menyiapkan generasi muda berprestasi dari seluruh Indonesia untuk melanjutkan pendidikan ke perguruan tinggi unggulan dunia, sekaligus meningkatkan kualitas Sumber Daya Manusia (SDM) Indonesia di kancah global.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Implementasi Sekolah unggulan -->
+                    <div id="sekolah-unggulan-implementasi">
+                        <h3>Implementasi Sekolah Unggulan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Sekolah Unggulan</th>
+                                        <th>Alamat</th>
+                                        <th>Jumlah Murid</th>
+                                        <th>Jumlah Guru</th>
+                                        <th>Jumlah Wali Asuh</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Global Darussalam Academy (GDA)</td>
+                                        <td>Pandan Puro, Hargobinangun, Kec. Pakem, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55582  </td>
+                                        <td>67</td>
+                                        <td>XX</td>
+                                        <td>XX</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="info-box">
+                            <!-- <h4>Tujuan</h4> -->
+                            <p>Global Darussalam Academy (GDA) adalah Sekolah Menengah Atas (SMA) unggulan yang menjadi bagian dari Akademi Kader Bangsa, jaringan sekolah unggulan yang turut berkomitmen mewujudkan Visi Indonesia Emas 2045. GDA hadir sebagai SMA berasrama pertama dan satu-satunya di Indonesia yang menggabungkan prinsip inklusivitas, nilai-nilai keislaman, wawasan global, serta kurikulum menuju International Baccalaureate Diploma Programme (IB DP).</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Rencana Unggulan Rakyat -->
+                    <div id="sekolah-unggulan-rencana">
+                        <h3>Rencana Lokasi Sekolah Unggulan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Lokasi</th>
+                                        <th>Kecamatan</th>
+                                        <th>Status</th>
+                                        <th>Kapasitas</th>
+                                        <th>Target Operasional</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Mlati</td>
+                                        <td>Mlati</td>
+                                        <td>Perencanaan</td>
+                                        <td>360 siswa</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Depok</td>
+                                        <td>Depok</td>
+                                        <td>Survei Lokasi</td>
+                                        <td>480 siswa</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Sleman</td>
+                                        <td>Sleman</td>
+                                        <td>Pembangunan</td>
+                                        <td>240 siswa</td>
+                                        <td>2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Ngaglik</td>
+                                        <td>Ngaglik</td>
+                                        <td>Pembangunan</td>
+                                        <td>360 siswa</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Gamping</td>
+                                        <td>Gamping</td>
+                                        <td>Perencanaan</td>
+                                        <td>240 siswa</td>
+                                        <td>2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Berbah</td>
+                                        <td>Berbah</td>
+                                        <td>Perencanaan</td>
+                                        <td>120 siswa</td>
+                                        <td>2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Godean</td>
+                                        <td>Godean</td>
+                                        <td>Perencanaan</td>
+                                        <td>120 siswa</td>
+                                        <td>2028</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Dinas Sosial dan Dinas Pekerjaan Umum, Perumahan dan Kawasan Permukiman, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="sekolah-unggulan-nav" onclick="handleNavClick(event, 'sekolah-unggulan-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Sekolah Unggulan</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('sekolah-unggulan-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('sekolah-unggulan-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('sekolah-unggulan-implementasi')">Implementasi</button></li>
+                        <li><button onclick="scrollToSection('sekolah-unggulan-rencana')">Rencana Lokasi</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Juta Rumah Detail -->
+        <div class="detail-section" id="tiga-juta-rumah-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🏠 Program 3 Juta Rumah</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="tiga-juta-rumah-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">3,000</div>
+                                <div class="stat-label">Target Rumah Sleman</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">262</div>
+                                <div class="stat-label">Rumah Selesai</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">548</div>
+                                <div class="stat-label">Dalam Pembangunan</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">350</div>
+                                <div class="stat-label">Anggaran (Miliar Rupiah)</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="rumahChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="tiga-juta-rumah-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Presiden Prabowo menetapkan program 3 juta rumah untuk berbagai kelompok masyarakat berpenghasilan rendah (MBR), termasuk ASN dan pekerja informal. Dalam hal ini pemerintah menargetkan peningkatan kepemilikan rumah layak di perkotaan, perdesaan dan pesisir.</p>
+                        </div>
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Tujuan dari Program Pembangunan dan Renovasi 3 Juta Rumah adalah memberikan akses hunian layak bagi masyarakat miskin ekstrem, miskin, dan kelas menengah bawah, serta mempersempit kesenjangan antara masyarakat kota, desa, dan pesisir.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Sebaran Pembangunan -->
+                    <div id="tiga-juta-rumah-sebaran">
+                        <h3>Sebaran Pembangunan Rumah per Kecamatan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kecamatan</th>
+                                        <th>Target Unit</th>
+                                        <th>Selesai</th>
+                                        <th>Pembangunan</th>
+                                        <th>Perencanaan</th>
+                                        <th>Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Mlati</td>
+                                        <td>240</td>
+                                        <td>28</td>
+                                        <td>45</td>
+                                        <td>167</td>
+                                        <td>30.4%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Depok</td>
+                                        <td>180</td>
+                                        <td>15</td>
+                                        <td>32</td>
+                                        <td>133</td>
+                                        <td>26.1%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Berbah</td>
+                                        <td>150</td>
+                                        <td>12</td>
+                                        <td>28</td>
+                                        <td>110</td>
+                                        <td>26.7%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Prambanan</td>
+                                        <td>200</td>
+                                        <td>18</td>
+                                        <td>38</td>
+                                        <td>144</td>
+                                        <td>28.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Kalasan</td>
+                                        <td>160</td>
+                                        <td>14</td>
+                                        <td>29</td>
+                                        <td>117</td>
+                                        <td>26.9%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Ngemplak</td>
+                                        <td>180</td>
+                                        <td>22</td>
+                                        <td>41</td>
+                                        <td>117</td>
+                                        <td>35.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Ngaglik</td>
+                                        <td>220</td>
+                                        <td>25</td>
+                                        <td>48</td>
+                                        <td>147</td>
+                                        <td>33.2%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8</td>
+                                        <td>Seyegan</td>
+                                        <td>170</td>
+                                        <td>19</td>
+                                        <td>35</td>
+                                        <td>116</td>
+                                        <td>31.8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9</td>
+                                        <td>Minggir</td>
+                                        <td>120</td>
+                                        <td>8</td>
+                                        <td>22</td>
+                                        <td>90</td>
+                                        <td>25.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>10</td>
+                                        <td>Moyudan</td>
+                                        <td>140</td>
+                                        <td>11</td>
+                                        <td>26</td>
+                                        <td>103</td>
+                                        <td>26.4%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>11</td>
+                                        <td>Godean</td>
+                                        <td>200</td>
+                                        <td>24</td>
+                                        <td>44</td>
+                                        <td>132</td>
+                                        <td>34.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12</td>
+                                        <td>Gamping</td>
+                                        <td>190</td>
+                                        <td>21</td>
+                                        <td>39</td>
+                                        <td>130</td>
+                                        <td>31.6%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>13</td>
+                                        <td>Sleman</td>
+                                        <td>210</td>
+                                        <td>26</td>
+                                        <td>47</td>
+                                        <td>137</td>
+                                        <td>34.8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>14</td>
+                                        <td>Tempel</td>
+                                        <td>130</td>
+                                        <td>9</td>
+                                        <td>24</td>
+                                        <td>97</td>
+                                        <td>25.4%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>15</td>
+                                        <td>Turi</td>
+                                        <td>110</td>
+                                        <td>6</td>
+                                        <td>18</td>
+                                        <td>86</td>
+                                        <td>21.8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>16</td>
+                                        <td>Pakem</td>
+                                        <td>150</td>
+                                        <td>12</td>
+                                        <td>28</td>
+                                        <td>110</td>
+                                        <td>26.7%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>17</td>
+                                        <td>Cangkringan</td>
+                                        <td>120</td>
+                                        <td>8</td>
+                                        <td>20</td>
+                                        <td>92</td>
+                                        <td>23.3%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Dinas Perumahan dan Pemukiman, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="tiga-juta-rumah-nav" onclick="handleNavClick(event, 'tiga-juta-rumah-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Tiga Juta Rumah</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('tiga-juta-rumah-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('tiga-juta-rumah-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('tiga-juta-rumah-sebaran')">Sebaran Pembangunan</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Koperasi Merah Putih Detail -->
+        <div class="detail-section" id="koperasi-merah-putih-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🤝 Program Koperasi Merah Putih</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="koperasi-merah-putih-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">86</div>
+                                <div class="stat-label">Target Koperasi</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">3</div>
+                                <div class="stat-label">Koperasi Aktif</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XX</div>
+                                <div class="stat-label">Total Anggota</div>
+                            </div>
+                            <!-- <div class="stat-card">
+                                <div class="stat-number">148.7M</div>
+                                <div class="stat-label">Aset (Miliar Rupiah)</div>
+                            </div> -->
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="koperasiChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="koperasi-merah-putih-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Undang-Undang 1945 Pasal 33 menegaskan bahwa perekonomian Indonesia disusun atas usaha bersama yang didasarkan pada asas kekeluargaan. Presiden Republik Indonesia sangat mendukung segala upaya untuk menggerakkan koperasi di seluruh Indonesia, mencerminkan komitmen pemerintah dalam memperkuat ekonomi kerakyatan.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Pembentukan Koperasi Desa/Kelurahan Merah Putih didorong oleh kebutuhan untuk meningkatkan kesejahteraan ekonomi masyarakat desa melalui pendekatan ekonomi kerakyatan yang berbasis pada prinsip gotong royong, kekeluargaan, dan saling membantu.</p>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="koperasi-merah-putih-data">
+                        <h3>Data Koperasi per Kecamatan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kecamatan</th>
+                                        <th>Jumlah Desa/Kelurahan</th>
+                                        <th>Jumlah Koperasi Aktif</th>
+                                        <th>Total Anggota</th>
+                                        <th>Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Moyudan</td>
+                                        <td>4</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Minggir</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Seyegan</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Godean</td>
+                                        <td>7</td>
+                                        <td>1</td>
+                                        <td>XX</td>
+                                        <td>14%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Gamping</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Mlati</td>
+                                        <td>5</td>
+                                        <td>1</td>
+                                        <td>XX</td>
+                                        <td>20%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Depok</td>
+                                        <td>3</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8</td>
+                                        <td>Berbah</td>
+                                        <td>4</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9</td>
+                                        <td>Prambanan</td>
+                                        <td>6</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>10</td>
+                                        <td>Kalasan</td>
+                                        <td>4</td>
+                                        <td>1</td>
+                                        <td>XX</td>
+                                        <td>25%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>11</td>
+                                        <td>Ngemplak</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12</td>
+                                        <td>Ngaglik</td>
+                                        <td>6</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>13</td>
+                                        <td>Sleman</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>14</td>
+                                        <td>Tempel</td>
+                                        <td>8</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>15</td>
+                                        <td>Turi</td>
+                                        <td>4</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>16</td>
+                                        <td>Pakem</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>17</td>
+                                        <td>Cangkringan</td>
+                                        <td>5</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Dinas Koperasi dan UKM Kabupaten Sleman, Kementerian Koperasi dan UKM, dan data rekapitulasi koperasi aktif per Januari 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="koperasi-merah-putih-nav" onclick="handleNavClick(event, 'koperasi-merah-putih-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Koperasi Merah Putih</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('koperasi-merah-putih-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('koperasi-merah-putih-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('koperasi-merah-putih-data')">Data Koperasi per Kecamatan</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swasembada Pangan Detail -->
+        <div class="detail-section" id="swasembada-pangan-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🌾 Swasembada Pangan</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="swasembada-pangan-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">12,890</div>
+                                <div class="stat-label">Petani Terdaftar</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">21,440</div>
+                                <div class="stat-label">Luas Panen Padi 2024 (ha)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">105,983</div>
+                                <div class="stat-label">Produksi Padi 2024 (ton GKG)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XXXX</div>
+                                <div class="stat-label">Luas Tambah Tanam Jagung</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XXXX</div>
+                                <div class="stat-label">Luas Tambah Tanam Padi</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XX.XX%</div>
+                                <div class="stat-label">Tingkat Ketahanan Pangan</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="produksiTahunanChart"></canvas>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="panganDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="swasembada-pangan-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Program swasembada pangan merupakan langkah strategis pemerintah dalam menjaga ketahanan pangan nasional dengan memaksimalkan pemanfaatan lahan yang ada serta memperluas cakupan sawah untuk mendukung pencapaian swasembada pangan.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Program Swasembada pangan ditujukan untuk 
+                                <br>1) menjamin Ketahanan Pangan: Memastikan ketersediaan pangan yang stabil dan berkelanjutan bagi seluruh penduduk Indonesia; 
+                                <br>2) mengurangi Ketergantungan Impor: Mengurangi ketergantungan pasokan pangan dari luar negeri, sehingga menjaga stabilitas ekonomi dan kedaulatan pangan nasional.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Produksi Pertanian per Kecamatan -->
+                    <div id="swasembada-pangan-produksi-kecamatan">
+                        <h3>Produksi Pertanian per Kecamatan (2024)</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kecamatan</th>
+                                        <th>Luas Panen (Ha)</th>
+                                        <th>Produksi Padi (Ton)</th>
+                                        <th>Produktivitas (Ton/Ha)</th>
+                                        <th>Jumlah Petani</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Mlati</td>
+                                        <td>980</td>
+                                        <td>4,850</td>
+                                        <td>4.95</td>
+                                        <td>650</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Depok</td>
+                                        <td>750</td>
+                                        <td>3,680</td>
+                                        <td>4.91</td>
+                                        <td>520</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Berbah</td>
+                                        <td>1,240</td>
+                                        <td>6,180</td>
+                                        <td>4.98</td>
+                                        <td>820</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Prambanan</td>
+                                        <td>1,450</td>
+                                        <td>7,120</td>
+                                        <td>4.91</td>
+                                        <td>950</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Kalasan</td>
+                                        <td>1,180</td>
+                                        <td>5,890</td>
+                                        <td>4.99</td>
+                                        <td>780</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Ngemplak</td>
+                                        <td>1,320</td>
+                                        <td>6,480</td>
+                                        <td>4.91</td>
+                                        <td>870</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Ngaglik</td>
+                                        <td>1,100</td>
+                                        <td>5,450</td>
+                                        <td>4.95</td>
+                                        <td>720</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8</td>
+                                        <td>Seyegan</td>
+                                        <td>1,380</td>
+                                        <td>6,890</td>
+                                        <td>4.99</td>
+                                        <td>920</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9</td>
+                                        <td>Minggir</td>
+                                        <td>1,180</td>
+                                        <td>5,780</td>
+                                        <td>4.90</td>
+                                        <td>780</td>
+                                    </tr>
+                                    <tr>
+                                        <td>10</td>
+                                        <td>Moyudan</td>
+                                        <td>1,250</td>
+                                        <td>6,180</td>
+                                        <td>4.94</td>
+                                        <td>820</td>
+                                    </tr>
+                                    <tr>
+                                        <td>11</td>
+                                        <td>Godean</td>
+                                        <td>1,080</td>
+                                        <td>5,340</td>
+                                        <td>4.94</td>
+                                        <td>710</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12</td>
+                                        <td>Gamping</td>
+                                        <td>890</td>
+                                        <td>4,380</td>
+                                        <td>4.92</td>
+                                        <td>590</td>
+                                    </tr>
+                                    <tr>
+                                        <td>13</td>
+                                        <td>Sleman</td>
+                                        <td>980</td>
+                                        <td>4,840</td>
+                                        <td>4.94</td>
+                                        <td>650</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Produksi Pertanian Tahunan -->
+                    <div id="swasembada-pangan-produksi-tahunan">
+                        <h3>Produksi Pertanian Kabupaten Sleman Periode 2020-2024</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Tahun</th>
+                                        <th>Luas Panen (Ha)</th>
+                                        <th>Produksi Padi (Ton)</th>
+                                        <th>Produktivitas (Ton/Ha)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>2024</td>
+                                        <td>21440</td>
+                                        <td>105983</td>
+                                        <td>4.95</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>2023</td>
+                                        <td>22944</td>
+                                        <td>115593</td>
+                                        <td>5.04</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>2022</td>
+                                        <td>23796</td>
+                                        <td>116951</td>
+                                        <td>4.91</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>2021</td>
+                                        <td>24526</td>
+                                        <td>123590</td>
+                                        <td>5.04</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>2020</td>
+                                        <td>23842</td>
+                                        <td>111679</td>
+                                        <td>4.68</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: POLRI, Dinas Pertanian, Badan Pusat Statistik, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="swasembada-pangan-nav" onclick="handleNavClick(event, 'swasembada-pangan-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Swasembada Pangan</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('swasembada-pangan-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('swasembada-pangan-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('swasembada-pangan-produksi-kecamatan')">Produksi Pertanian per Kecamatan</button></li>
+                        <li><button onclick="scrollToSection('swasembada-pangan-produksi-tahunan')">Produksi Pertanian 2020-2024</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cek Kesehatan Gratis Detail -->
+        <div class="detail-section" id="ckg-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🩺 Cek Kesehatan Gratis</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="ckg-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
+                                <div class="stat-number">97</div>
+                                <div class="stat-label">Fasilitas CKG</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
+                                <div class="stat-number">1,245</div>
+                                <div class="stat-label">Masyarakat Terlayani</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="ckgChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="ckg-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Pembangunan SDM ditujukan untuk menciptakan masyarakat Indonesia yang sehat, produktif, dan berdaya saing di tingkat global. Kementerian Kesehatan memiliki tanggung jawab untuk melaksanakan tiga dari delapan Program Hasil Terbaik Cepat (PHTC) yaitu pembangunan rumah sakit lengkap berkualitas di seluruh kabupaten di Indonesia, penurunan kasus tuberkulosis sebanyak 50% dalam 5 tahun, dan Pemeriksaan Kesehatan Gratis (PKG) atau dikenal dengan Cek Kesehatan Gratis (CKG). CKG dilaksanakan melalui pendekatan siklus hidup, dimulai sejak bayi baru lahir hingga lanjut usia. Pendekatan ini difokuskan pada upaya promotif dan preventif yang bersifat holistik, terintegrasi, dan berbasis kelompok sasaran (people-centered). CKG ditujukan untuk mendeteksi faktor risiko kesehatan, kondisi pra-penyakit, serta penyakit dengan tujuan meningkatkan kualitas hidup dan angka harapan hidup masyarakat Indonesia.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Program Cek Kesehatan Gratis ditujukan untuk 
+                                <br>1) mengidentifikasi faktor risiko kesehatan agar masyarakat tetap sehat dan tidak berlanjut menyebabkan timbulnya penyakit; 
+                                <br>2) mendeteksi kondisi pra penyakit agar tidak berkembang menjadi penyakit; dan
+                                <br>3) mendeteksi penyakit lebih awal agar dapat diberikan penanganan yang tepat dan mencegah komplikasi serta menurunkan risiko kecacatan dan kematian.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Fasilitas CKG per Kecamatan -->
+                    <div id="ckg-fasilitas">
+                        <h3>Fasilitas Cek Kesehatan Gratis per Kecamatan</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kecamatan</th>
+                                        <th>Banyak Fasilitas CGK</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Mlati</td>
+                                        <td>980</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Depok</td>
+                                        <td>750</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Berbah</td>
+                                        <td>1,240</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Prambanan</td>
+                                        <td>1,450</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Kalasan</td>
+                                        <td>1,180</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>Ngemplak</td>
+                                        <td>1,320</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>Ngaglik</td>
+                                        <td>1,100</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8</td>
+                                        <td>Seyegan</td>
+                                        <td>1,380</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9</td>
+                                        <td>Minggir</td>
+                                        <td>1,180</td>
+                                    </tr>
+                                    <tr>
+                                        <td>10</td>
+                                        <td>Moyudan</td>
+                                        <td>1,250</td>
+                                    </tr>
+                                    <tr>
+                                        <td>11</td>
+                                        <td>Godean</td>
+                                        <td>1,080</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12</td>
+                                        <td>Gamping</td>
+                                        <td>890</td>
+                                    </tr>
+                                    <tr>
+                                        <td>13</td>
+                                        <td>Sleman</td>
+                                        <td>980</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Dinas Kesehatan, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="ckg-nav" onclick="handleNavClick(event, 'ckg-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Cek Kesehatan Gratis</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('ckg-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('ckg-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('ckg-fasilitas')">Fasilitas CKG per Kecamatan</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transmigrasi Detail -->
+        <div class="detail-section" id="transmigrasi-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🗺️ Program Transmigrasi</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="transmigrasi-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Kuota Transmigrasi</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">10</div>
+                                <div class="stat-label">Jumlah KK Mendaftar</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">4</div>
+                                <div class="stat-label">Sudah Pindah</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">2</div>
+                                <div class="stat-label">Dalam Proses</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="transmigrasiChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="transmigrasi-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Program transmigrasi diarahkan untuk pemerataan penduduk, pembangunan permukiman baru, 
+                            dan peningkatan kesejahteraan masyarakat melalui pemanfaatan lahan produktif serta 
+                            pengembangan sentra ekonomi lokal di kawasan transmigrasi.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Tujuan program transmigrasi:
+                                <br>1) Pemerataan Pembangunan: Transmigrasi bertujuan untuk mendistribusikan penduduk dari daerah padat penduduk ke daerah yang kurang penduduk, yang dapat mengurangi ketimpangan pembangunan antar wilayah; 
+                                <br>2) Peningkatan Kesejahteraan Rakyat: Dengan mengalihkan sebagian penduduk dari daerah yang padat ke daerah yang lebih luas dan memiliki potensi sumber daya alam, transmigrasi bisa menciptakan peluang kerja baru dan meningkatkan taraf hidup penduduk di daerah yang lebih terisolasi; dan
+                                <br>3) Peningkatan Infrastruktur dan Pembangunan Wilayah: Salah satu poin penting dalam Asta Cita adalah pembangunan infrastruktur di seluruh Indonesia. Program transmigrasi seringkali disertai dengan pembangunan infrastruktur dasar (seperti jalan, listrik, air bersih) di daerah tujuan transmigrasi, yang bisa mempercepat pembangunan wilayah-wilayah tersebut.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="transmigrasi-distribusi">
+                        <h3>Distribusi Transmigran</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kuota Transmigrasi</th>
+                                        <th>Jumlah Pendaftar</th>
+                                        <th>Lokasi Tujuan</th>
+                                        <th>Keberangkatan</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>4</td>
+                                        <td>14</td>
+                                        <td>Limpau</td>
+                                        <td>8 Desember 2024</td>
+                                        <td>Selesai</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>5</td>
+                                        <td>9</td>
+                                        <td>Lampau</td>
+                                        <td>8 Desember 2025</td>
+                                        <td>Pendaftaran</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Direktorat Jenderal Transmigrasi, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="transmigrasi-nav" onclick="handleNavClick(event, 'transmigrasi-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Transmigrasi</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('transmigrasi-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('transmigrasi-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('transmigrasi-distribusi')">Distribusi Transmigrasi</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proyek Strategis Nasional Detail -->
+        <div class="detail-section" id="psn-detail">
+            <div class="detail-layout">
+                
+                <!-- Konten Kiri -->
+                <div class="detail-content">
+                    <button class="back-btn" onclick="showOverview()">く</button>
+                    
+                    <h2 style="color: #000000; margin-bottom: 1.5rem;  ">🏗️ Proyek Strategis Nasional (PSN)</h2>
+                    
+                    <!-- Dashboard -->
+                    <div id="psn-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">10</div>
+                                <div class="stat-label">Total Proyek</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XXX</div>
+                                <div class="stat-label">Panjang Tol yang Akan Dibangun</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">XXX</div>
+                                <div class="stat-label">Panjang Tol Terbangun</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="height:400px; margin:20px 0;">
+                            <canvas id="psnChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latar Belakang & Tujuan -->
+                    <div id="psn-latar-tujuan">
+                        <div class="info-box">
+                            <h4>Latar Belakang</h4>
+                            <p>Proyek Strategis Nasional merupakan program prioritas pemerintah untuk mempercepat pembangunan 
+                            infrastruktur, meningkatkan konektivitas antarwilayah, serta memperkuat ketahanan energi, pangan, 
+                            dan ekonomi nasional.</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Tujuan</h4>
+                            <p>Tujuan PSN adalah mendorong pertumbuhan ekonomi, mempercepat pemerataan pembangunan, 
+                            meningkatkan daya saing nasional, serta memberikan manfaat langsung bagi kesejahteraan masyarakat.</p>
+                        </div>
+                    </div>
+
+                    <!-- Daftar Proyek Strategis -->
+                    <div id="psn-daftar-proyek">
+                        <h3>Daftar Proyek Strategis Nasional di Sleman</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Proyek</th>
+                                        <th>Target</th>
+                                        <th>Realisasi</th>
+                                        <th>Persentase</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Tol Jogja – Solo (Seksi Sleman)</td>
+                                        <td>XXX</td>
+                                        <td>XXX</td>
+                                        <td>XXX</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Tol Jogja – Bawen (Seksi Sleman)</td>
+                                        <td>XXX</td>
+                                        <td>XXX</td>
+                                        <td>XXX</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="source-note">
+                        Sumber: Kementerian PPN/Bappenas & Sekretariat PSN, 2025
+                    </div>
+                </div>
+
+                <!-- Navigasi Kanan -->
+                <div class="sub-nav" id="psn-nav" onclick="handleNavClick(event, 'psn-nav')">
+                    <button class="sub-nav-toggle">›</button>
+                    <h4>Proyek Strategis Nasional</h4>
+                    <ul>
+                        <li><button onclick="scrollToSection('psn-dashboard')">Dashboard</button></li>
+                        <li><button onclick="scrollToSection('psn-latar-tujuan')">Latar Belakang & Tujuan</button></li>
+                        <li><button onclick="scrollToSection('psn-daftar-proyek')">Daftar Proyek Strategis</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                const newsItems = document.querySelectorAll('.news-item');
+                newsItems.forEach(item => {
+                    item.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-5px)';
+                        this.style.boxShadow = '0 12px 35px rgba(0,0,0,0.15)';
+                    });
+                    item.addEventListener('mouseleave', function() {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.08)';
+                    });
+                    
+                    // Add click feedback
+                    item.addEventListener('mousedown', function() {
+                        this.style.transform = 'translateY(-2px) scale(0.98)';
+                    });
+                    item.addEventListener('mouseup', function() {
+                        this.style.transform = 'translateY(-5px) scale(1)';
+                    });
+                });
+            }, 2500);
+
+            // Daftar chart dengan ID canvas, judul, dan data
+            const charts = [
+                {
+                    id: "mbgChart",
+                    type: "doughnut",
+                    title: "Status Implementasi MBG per Sekolah",
+                    labels: ["Sekolah Terlayani MBG", "Sekolah Belum Terlayani"],
+                    data: [315, 1133],
+                    colors: ["#1976d2", "#EEEEEE"]
+                },
+                {
+                    id: "sekolahRakyatChart",
+                    type: "doughnut",
+                    title: "Status Implementasi Sekolah Rakyat",
+                    labels: ["Selesai", "Dalam Pembangunan", "Perencanaan"],
+                    data: [1, 1, 5], 
+                    colors: ["#1976d2", "#FAA533", "#EEEEEE"]
+                },
+                {
+                    id: "sekolahUnggulanChart",
+                    type: "doughnut",
+                    title: "Status Implementasi Sekolah Unggulan",
+                    labels: ["Selesai", "Dalam Pembangunan", "Perencanaan"],
+                    data: [1, 1, 4], // contoh data
+                    colors: ["#1976d2", "#FAA533", "#EEEEEE"]
+                },
+                {
+                    id: "rumahChart",
+                    type: "doughnut",
+                    title: "Progress Implementasi Program 3 Juta Rumah",
+                    labels: ["Selesai", "Dalam Pembangunan", "Perencanaan"],
+                    data: [14, 2, 19], // contoh data
+                    colors: ["#1976d2", "#FAA533", "#EEEEEE"]
+                },
+                {
+                    id: "koperasiChart",
+                    type: "doughnut",
+                    title: "Koperasi Merah Putih",
+                    labels: ["Aktif", "Belum Aktif"],
+                    data: [250, 157],
+                    colors: ["#1976d2", "#EEEEEE"]
+                },
+                {
+                    id: "produksiTahunanChart",
+                    type: "line",
+                    title: "Produksi Padi Tahunan (Ton GKG)",
+                    labels: ["2020","2021","2022","2023","2024"],
+                    datasets: [{
+                        label: "Produksi Padi",
+                        data: [111679, 123590, 116951, 115593, 105983],
+                        borderColor: "#e74c3c",
+                        backgroundColor: "#e74c3c",
+                        tension: 0,
+                        fill: false
+                    }]
+                },
+                {
+                    id: "panganDetailChart",
+                    type: "bar",
+                    title: "Produksi Padi per Kecamatan (Ton)",
+                    labels: ["Mlati","Depok","Berbah","Prambanan","Kalasan","Ngemplak","Ngaglik","Seyegan","Minggir","Moyudan","Godean","Gamping","Sleman","Turi","Pakem","Cangkringan","Tempel"],
+                    data: [4850, 3680, 6180, 7120, 5890, 6480, 5450, 6890, 5780, 6180, 5340, 4380, 4840, 3200, 4100, 2900, 3600],
+                    colors: ["#1976d2"]
+                },
+                {
+                    id: "ckgChart",
+                    type: "bar",
+                    title: "Banyak Fasilitas CKG per Kecamatan",
+                    labels: ["Mlati","Depok","Berbah","Prambanan","Kalasan","Ngemplak","Ngaglik","Seyegan","Minggir","Moyudan","Godean","Gamping","Sleman"],
+                    data: [4850, 3680, 6180, 7120, 5890, 6480, 5450, 6890, 5780, 6180, 5340, 4380, 4840],
+                    colors: ["#0984e3"]
+                },
+                {
+                    id: "transmigrasiChart",
+                    type: "doughnut",
+                    title: "Status Program Transmigrasi",
+                    labels: ["Terealisasi", "Dalam Proses", "Perencanaan"],
+                    data: [1200, 450, 300],
+                    colors: ["#0984e3", "#FAA533", "#dfe6e9"]
+                },
+                {
+                    id: "psnChart",
+                    type: "doughnut",
+                    title: "Progres Proyek Strategis Nasional",
+                    labels: ["Telah Terbangun", "Belum Terbangun"],
+                    data: [1, 5],
+                    colors: ["#1976d2", "#EEEEEE"]
+                }
+            ];
+
+            // Simpan semua chart agar bisa destroy kalau perlu
+            window.allCharts = {};
+
+            charts.forEach(cfg => {
+                const canvas = document.getElementById(cfg.id);
+                if (canvas) {
+                    const ctx = canvas.getContext("2d");
+
+                    if (cfg.type === "stackedBar") {
+                        window.allCharts[cfg.id] = new Chart(ctx, {
+                            type: "bar",
+                            data: {
+                                labels: cfg.labels,
+                                datasets: cfg.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: cfg.title,
+                                        font: { size: 16, weight: "bold" }
+                                    },
+                                    legend: {
+                                        position: "bottom",
+                                        labels: { padding: 20, usePointStyle: true }
+                                    }
+                                },
+                                scales: {
+                                    x: { stacked: true },
+                                    y: { stacked: true, beginAtZero: true }
+                                }
+                            }
+                        });
+                    } else if (cfg.type === "line") {
+                        window.allCharts[cfg.id] = new Chart(ctx, {
+                            type: "line",
+                            data: {
+                                labels: cfg.labels,
+                                datasets: cfg.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: cfg.title,
+                                        font: { size: 16, weight: "bold" }
+                                    },
+                                    legend: {
+                                        position: "bottom",
+                                        labels: { padding: 20, usePointStyle: true }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // chart default (bar, doughnut, dll.)
+                        const chartConfig = {
+                            type: cfg.type,
+                            data: {
+                                labels: cfg.labels,
+                                datasets: [{
+                                    data: cfg.data,
+                                    backgroundColor: cfg.colors,
+                                    borderWidth: 0,
+                                    hoverOffset: 10
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: cfg.title,
+                                        font: { size: 16, weight: "bold" }
+                                    },
+                                    legend: {
+                                        position: "bottom",
+                                        labels: { padding: 20, usePointStyle: true }
+                                    }
+                                }
+                            }
+                        };
+
+                        // Only add centerText plugin for doughnut chart
+                        if (cfg.type === "doughnut") {
+                            chartConfig.plugins = [
+                                {
+                                    id: 'centerText',
+                                    afterDraw(chart) {
+                                        const { ctx, chartArea: {left, right, top, bottom} } = chart;
+                                        ctx.save();
+
+                                        // Hitung nilai persentase
+                                        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const value = chart.data.datasets[0].data[0]; // ambil yang pertama
+                                        const percent = ((value / total) * 100).toFixed(2) + "%";
+
+                                        // Hitung posisi tengah chart area
+                                        const centerX = (left + right) / 2;
+                                        const centerY = (top + bottom) / 2;
+
+                                        ctx.font = "bold 20px Arial";
+                                        ctx.fillStyle = "#333";
+                                        ctx.textAlign = "center";
+                                        ctx.textBaseline = "middle";
+                                        ctx.fillText(percent, centerX, centerY);
+
+                                        ctx.restore();
+                                    }
+                                }
+                            ];
+                        }
+                        window.allCharts[cfg.id] = new Chart(ctx, chartConfig);
+                    }
+                }
+            });
+        });
+        </script>
+    </div>
+</body>
+<footer>
+    © 2025 <a href="https://slemankab.bps.go.id" target="_blank">Badan Pusat Statistik Kabupaten Sleman</a>
+</footer>
+</html>
